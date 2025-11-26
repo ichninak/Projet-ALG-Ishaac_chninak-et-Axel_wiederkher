@@ -1,0 +1,204 @@
+J'ai posé à chatgpt :
+Donc dans ce projet on devra respecté cela : En entrée on nous donne un fichier d'entrée qui contient plein de ligne. 
+Chaque ligne représente un génome donc on ne saura pas à l'avance le nombre de génomes qu'ils nous demandent du coup notre code doit être prêt à accueillir n génome. (génération d'une boucle) 
+Ensuite on les découpes nous même en kmer le prof nous a parlé de kmer associé a une couleur cependant je ne comprends pas ce point surtout que la version naive la couleur sera mise a chaque fois une fois ou je ne sais pas tu connais ça ?
+
+Oui, ton résumé est correct — et je peux clarifier exactement ce que veut dire “k-mer associé à une couleur”, car c’est un point fondamental du projet et c’est normal que ce ne soit pas évident au début.
+
+✅ 1. Chaque génome correspond à une couleur
+
+Dans un graphe de de Bruijn coloré, une couleur = un génome.
+
+Si on a N génomes :
+G₁ → couleur 1
+G₂ → couleur 2
+G₃ → couleur 3
+…
+Gₙ → couleur n
+
+Donc quand on lit le fichier contenant la liste des chemins de génomes, l’ordre des lignes définit aussi implicitement les couleurs.
+
+CE QUE J'AI COMPRIS EN ECOUTANT, LE CODE QUI ENONCERA LES COULEURS IMPLENTERA DES NOMBRES ET NON DES VRAIS COULEURS.
+
+✅ 2. Quand tu découpes un génome en k-mers, chaque k-mer “hérite” de la couleur du génome
+Prenons un génome G₂ (couleur = 2).
+Si tu génères ces k-mers :
+
+ATGCA
+TGCAT
+GCATG
+CATGA
+Alors chacun de ces k-mers doit être enregistré comme présent dans la couleur 2.
+
+
+✅ 3. Pourquoi un k-mer a souvent plusieurs couleurs ?
+
+Parce qu’un même k-mer peut apparaître dans plusieurs génomes.
+Exemple :
+G₁ contient ATGCA
+G₂ contient ATGCA
+G₃ ne contient pas ATGCA
+
+Alors dans la version naïve tu dois stocker :
+
+kmer "ATGCA" → [1, 2]
+⚠️ Donc la couleur n’est pas une seule valeur, c’est un ensemble de couleurs (une liste d’identifiants de génomes).
+
+
+
+✅ 4. Dans la version naïve : un dictionnaire
+
+Le prof veut que vous utilisiez quelque chose comme :
+graph = {
+    "ATGCA": {1, 2},
+    "TGCAT": {1},
+    "GCATG": {2, 3},
+    ...
+}
+
+
+Donc chaque k-mer est une clé, et ses couleurs sont l’ensemble des génomes dans lesquels il apparaît.
+➡️ C’est simple, mais très redondant (chaque k-mer stocke sa liste d’identifiants → énorme pour les grands génomes).
+
+
+❗️5. Pourquoi parle-t-il de “la couleur sera mise une seule fois” ?
+
+Tu fais référence à ceci :
+le prof nous a parlé de k-mer associé à une couleur cependant je ne comprends pas ce point surtout que la version naïve la couleur sera mise à chaque fois une fois
+
+En fait il veut dire :
+Dans une version naïve, chaque k-mer stocke sa liste de couleurs indépendamment.
+Dans la version avancée, tous les k-mers d’un unitig ont la même couleur, donc tu peux stocker la couleur UNE seule fois au niveau du nœud/chemin, pas du k-mer.
+Ce n’est pas pour la version naïve, mais pour la version optimisée.
+
+
+🔥 6. Version avancée : les couleurs sont stockées par unitig, pas par k-mer
+
+Un unitig est une chaîne linéaire dans le graphe où chaque nœud a :
+un seul prédécesseur,
+un seul successeur.
+
+Tous les k-mers d’un unitig apparaissent exactement dans les mêmes génomes.
+
+Donc au lieu de faire :
+
+ATGCA → [1, 2]
+TGCAT → [1, 2]
+GCATG → [1, 2]
+CATGA → [1, 2]
+
+
+Tu stockes :
+
+UNITIG_42 = {
+    "sequence": "ATGCATGA"...,
+    "colors": [1, 2]
+}
+
+
+➡️ Cela réduit énormément l’espace mémoire.
+
+🧠 Pour résumer clairement :
+Version	Où stocke-t-on la couleur ?	À quoi elle ressemble ?
+Naïve	Pour chaque k-mer	Un ensemble d’identifiants de génomes
+Avancée	Pour chaque unitig	Même ensemble de couleurs appliqué à tous les k-mers du chemin
+📌 Si tu veux, je peux t’écrire :
+
+une fonction simple qui lit N génomes et génère un dict naïf kmer → couleurs
+
+ou t’expliquer comment détecter les unitigs
+
+ou même t’aider à structurer ton code build.py / query.py
+
+
+
+
+
+
+
+
+
+
+c'est quoi la différence entre build et query?
+
+
+🧱 1. BUILD = construire le graphe de de Bruijn coloré
+
+C’est la phase off-line, lourde, coûteuse, mais qui ne doit se faire qu’une seule fois pour un set de génomes.
+Build fait :
+
+Lire la liste des génomes (fichiers FASTA)
+Découper chaque génome en k-mers
+Construire le graphe de de Bruijn
+
+Dans la version naïve : un dict kmer → couleurs
+Dans la version avancée : unitigs + couleurs
+
+Sérialiser (sauvegarder) le graphe sur disque
+avec pickle.dump(...)
+
+Commande build :
+dbg_indexer.py build -i liste_genomes.txt -k 31 -o index_cdbg.bin
+
+OUTPUT build :
+
+un fichier binaire qui contient le graphe
+des mesures de performance (temps de construction, temps d’écriture)
+
+
+🔍 2. QUERY = interroger le graphe pour une ou plusieurs séquences
+
+C’est la phase on-line — rapide, légère, appelée plein de fois.
+
+Query fait :
+Charger le graphe de de Bruijn construit auparavant
+pickle.load(...)
+Lire une séquence requête (ou plusieurs)
+Découper la requête en k-mers
+Pour chaque génome, calculer : mettre la capture du calcul 
+	​
+JPP 
+	​
+
+
+Écrire les résultats dans un fichier texte, format :
+
+query1   0.975  0  0.12
+query2   0.18   1  0.42
+
+Commande query :
+dbg_indexer.py query -q requetes.fa -i index_cdbg.bin -o resultats.txt
+
+
+🔥 Résumé en une phrase
+Phase	Rôle
+BUILD	Construire et sauvegarder le graphe coloré à partir des génomes
+QUERY	Charger ce graphe et mesurer la similarité entre une requête et les génomes
+
+🧠 Analogie simple
+build = “je construis une énorme bibliothèque organisée”
+query = “je pose une question à la bibliothèque pour retrouver une info”
+
+🎯 En code (version naïve simplifiée)
+build.py
+def build_index(paths_genomes, k):
+    graph = {}  # kmer -> set(colors)
+    for color_id, path in enumerate(paths_genomes):
+        genome = read_fasta_sequence(path)
+        for kmer in get_kmers(genome, k):
+            graph.setdefault(kmer, set()).add(color_id)
+    save(graph)
+
+query.py
+def query_index(graph, query_sequences, k):
+    results = []
+    for Q in query_sequences:
+        kmers = get_kmers(Q, k)
+        scores = [0] * graph.num_colors
+        for kmer in kmers:
+            if kmer in graph:
+                for c in graph[kmer]:
+                    scores[c] += 1
+        normalize(scores, len(kmers))
+        results.append(scores)
+    return results
