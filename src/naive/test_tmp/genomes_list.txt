@@ -1,0 +1,2 @@
+test_tmp\genome1.fasta
+test_tmp\genome2.fasta
