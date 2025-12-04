@@ -1,0 +1,5 @@
+First_set/100kGenomes/B253_GCA_000190495.1.fasta
+First_set/100kGenomes/ECOR37_GCA_002190835.1.fasta
+First_set/100kGenomes/H299_GCA_000176695.2.fasta
+First_set/100kGenomes/IAI39_GCA_000026345.1.fasta
+First_set/100kGenomes/SAKAI_GCA_003028755.1.fasta
