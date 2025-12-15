@@ -202,3 +202,9 @@ def query_index(graph, query_sequences, k):
         normalize(scores, len(kmers))
         results.append(scores)
     return results
+
+
+
+
+IL NE FAUT PAS STOCKER UNE SEQUENCE CA NE SERT A RIEN
+bannir les interactions programmés
