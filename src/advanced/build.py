@@ -5,6 +5,9 @@ from collections import defaultdict
 
 
 def read_fasta(path):
+    """
+    Lit un fichier FASTA et renvoie la séquence nucléotidique concaténée.
+    """
     seq = []
     with open(path, "r") as f:
         for line in f:
@@ -14,6 +17,9 @@ def read_fasta(path):
 
 
 def get_kmers(seq, k):
+    """
+    Générateur de k-mers à partir d'une séquence.
+    """
     n = len(seq)
     for i in range(n - k + 1):
         yield seq[i:i+k]
@@ -21,10 +27,11 @@ def get_kmers(seq, k):
 
 def build_dbg(genomes, k):
     """
-    Construit un DBG simple : 
-        succ[prefix] = set of suffixes
-        pred[suffix] = set of prefixes
-        colors[kmer] = set(colors)
+    Construit le graphe de De Bruijn à partir d'une liste de génomes.
+
+    - succ : dictionnaire des successeurs
+    - pred : dictionnaire des prédécesseurs
+    - colors : k-mer -> ensemble des couleurs (genomes)
     """
     succ = defaultdict(set)
     pred = defaultdict(set)
@@ -43,57 +50,52 @@ def build_dbg(genomes, k):
 
 def compact_dbg(succ, pred, k):
     """
-    Construit les unitigs à partir du DBG.
-    Retourne:
-        - unitigs (list of strings)
-        - kmer_to_unitig (dict kmer -> unitig ID)
-    """
+    Compacte le graphe de De Bruijn en unitigs.
 
+    Un unitig est un chemin maximal sans branchement
+    (degré entrant = 1 et degré sortant = 1).
+
+    Retourne :
+    - la liste des unitigs (séquences)
+    - un dictionnaire k-mer -> identifiant de unitig
+    """
     visited = set()
     unitigs = []
     kmer_to_unitig = {}
 
-    # Trouver les noeuds start = indegree != 1 ou outdegree != 1
     nodes = set(succ.keys()) | set(pred.keys())
     starts = []
 
+    # Détection des noeuds de départ (non linéaires)
     for node in nodes:
         indeg = len(pred[node]) if node in pred else 0
         outdeg = len(succ[node]) if node in succ else 0
         if indeg != 1 or outdeg != 1:
             starts.append(node)
 
-    # Construire les unitigs depuis les start nodes
+    # Construction des unitigs
     for start in starts:
         if start in visited:
             continue
 
-        # Si pas de succ, c'est un unitig trivial
         if len(succ[start]) == 0:
             unitigs.append(start)
             visited.add(start)
             continue
 
-        # Pour chaque successeur
         for nxt in succ[start]:
-
             seq = start
             cur = nxt
 
-            # Avancer tant que noeud linéaire
             while len(pred[cur]) == 1 and len(succ[cur]) == 1:
-                seq += cur[-1]   # ajouter dernière base
-                next_node = next(iter(succ[cur]))
-                cur = next_node
+                seq += cur[-1]
+                cur = next(iter(succ[cur]))
 
-            # Ajouter dernier noeud
             seq += cur[-1]
 
-            # Enregistrer le unitig
             uid = len(unitigs)
             unitigs.append(seq)
 
-            # Marquer tous les k-mers du unitig
             for i in range(len(seq) - k + 1):
                 kmer = seq[i:i+k]
                 kmer_to_unitig[kmer] = uid
@@ -105,7 +107,8 @@ def compact_dbg(succ, pred, k):
 
 def color_unitigs(unitigs, kmer_to_unitig, colors):
     """
-    Attribue les couleurs aux unitigs.
+    Attribue à chaque unitig l'ensemble des couleurs
+    des k-mers qui le composent.
     """
     unitig_colors = [set() for _ in unitigs]
 
@@ -118,24 +121,26 @@ def color_unitigs(unitigs, kmer_to_unitig, colors):
 
 
 def build_index(list_file, k, output_file):
-    t0 = time.time()
+    """
+    Construit un graphe de De Bruijn coloré compacté (version avancée).
 
-    # Charger génomes
+    L'utilisation des unitigs permet de factoriser l'information
+    de couleur et de réduire la taille de la structure.
+    """
     with open(list_file, "r") as f:
         genome_paths = [line.strip() for line in f if line.strip()]
+
     genomes = [read_fasta(p) for p in genome_paths]
 
-    # BUILD DBG
-    t_build0 = time.time()
+    t_build_start = time.time()
     succ, pred, colors = build_dbg(genomes, k)
     unitigs, kmer_to_unitig = compact_dbg(succ, pred, k)
     unitig_colors = color_unitigs(unitigs, kmer_to_unitig, colors)
-    t_build1 = time.time()
+    t_build_end = time.time()
 
-    print(f"OUT TIME_BUILD: {t_build1 - t_build0}")
+    print(f"OUT TIME_BUILD: {t_build_end - t_build_start}")
 
-    # SERIALISATION
-    t_ser0 = time.time()
+    t_ser_start = time.time()
     data = {
         "k": k,
         "unitigs": unitigs,
@@ -145,10 +150,10 @@ def build_index(list_file, k, output_file):
 
     with open(output_file, "wb") as out:
         pickle.dump(data, out, protocol=pickle.HIGHEST_PROTOCOL)
+    t_ser_end = time.time()
 
-    t_ser1 = time.time()
-    print(f"OUT TIME_SERIALISATION: {t_ser1 - t_ser0}")
+    print(f"OUT TIME_SERIALISATION: {t_ser_end - t_ser_start}")
 
 
 if __name__ == "__main__":
-    print("Use dbg_indexer.py")
+    print("Ce fichier ne doit pas être exécuté directement. Utilisez dbg_indexer.py")

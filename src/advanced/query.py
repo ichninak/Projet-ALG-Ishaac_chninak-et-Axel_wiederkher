@@ -4,6 +4,10 @@ import pickle
 
 
 def read_fasta_queries(path):
+    """
+    Lit un fichier FASTA contenant les séquences requêtes
+    et retourne une liste de tuples (header, sequence).
+    """
     queries = []
     header = None
     seq_parts = []
@@ -17,6 +21,7 @@ def read_fasta_queries(path):
                 seq_parts = []
             else:
                 seq_parts.append(line.strip().upper())
+
         if header is not None:
             queries.append((header, "".join(seq_parts)))
 
@@ -24,19 +29,28 @@ def read_fasta_queries(path):
 
 
 def get_kmers(seq, k):
+    """
+    Générateur de k-mers pour une séquence requête.
+    """
     n = len(seq)
     for i in range(n - k + 1):
         yield seq[i:i+k]
 
 
 def query_index(index_file, query_file, k, output_file):
-    # DESERIALISATION
-    t0 = time.time()
+    """
+    Interroge un graphe de De Bruijn coloré compacté.
+
+    Les k-mers des requêtes sont associés aux unitigs,
+    puis aux couleurs correspondantes afin de calculer
+    les ratios de similarité avec chaque génome.
+    """
+    t_deser_start = time.time()
     with open(index_file, "rb") as f:
         data = pickle.load(f)
-    t1 = time.time()
+    t_deser_end = time.time()
 
-    print(f"OUT TIME_DESERIALISATION: {t1 - t0}")
+    print(f"OUT TIME_DESERIALISATION: {t_deser_end - t_deser_start}")
 
     unitigs = data["unitigs"]
     unitig_colors = data["unitig_colors"]
@@ -44,8 +58,7 @@ def query_index(index_file, query_file, k, output_file):
 
     nb_colors = max((max(c) for c in unitig_colors if c), default=-1) + 1
 
-    # QUERY
-    t_q0 = time.time()
+    t_query_start = time.time()
     queries = read_fasta_queries(query_file)
 
     with open(output_file, "w") as out:
@@ -65,12 +78,11 @@ def query_index(index_file, query_file, k, output_file):
             else:
                 ratios = [0.0] * nb_colors
 
-            # FORMAT CORRECT
             out.write(header + "\t" + "\t".join(f"{r:.4f}" for r in ratios) + "\n")
 
-    t_q1 = time.time()
-    print(f"OUT TIME_QUERY: {t_q1 - t_q0}")
+    t_query_end = time.time()
+    print(f"OUT TIME_QUERY: {t_query_end - t_query_start}")
 
 
 if __name__ == "__main__":
-    print("Use dbg_indexer.py")
+    print("Ce fichier ne doit pas être exécuté directement. Utilisez dbg_indexer.py")
