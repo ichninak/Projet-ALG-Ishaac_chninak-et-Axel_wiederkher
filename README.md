@@ -131,11 +131,27 @@ query_2    1.0000    0.0000    0.0000
 
 ---
 
+Création d'une liste de génome `list_genome.txt`
+grâce au ligne de commande 
+
+Index naïf:
+```
+python -m naive.dbg_indexer build -i First_set/list_genomes.txt -k 31 -o index_naive.bin
+python -m naive.dbg_indexer query -q First_set/query.fa -i index_naive.bin -k 31 -o results_naive.txt
+```
+
+Index avancé:
+```
+python -m advanced.dbg_indexer build -i First_set/list_genomes.txt -k 31 -o index_advanced.bin
+python -m advanced.dbg_indexer query -q First_set/query.fa -i index_advanced.bin -k 31 -o results_advanced.txt
+```
+
 ## Remarques
 
 * La valeur de `k` doit être **identique** lors de la construction et du requêtage.
 * Les programmes ne sont pas interactifs : une fois lancés avec leurs arguments, ils s’exécutent et se terminent automatiquement.
 * La version avancée exploite la factorisation de l’information de couleur au niveau des unitigs afin de réduire la taille de l’index.
+* création d'un nouveau fichier `Bench.sh` pour générer un tableau pour la création des graphiques : le format du fichier générer est au format `tsv` !
 
 ---
 
@@ -143,4 +159,7 @@ query_2    1.0000    0.0000    0.0000
 
 * **Ishaac Chninak**
 * **Axel Wiederkher**
+
+
+
 
