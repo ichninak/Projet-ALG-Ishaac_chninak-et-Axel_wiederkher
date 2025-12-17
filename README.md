@@ -151,6 +151,7 @@ python -m advanced.dbg_indexer query -q First_set/query.fa -i index_advanced.bin
 * La valeur de `k` doit être **identique** lors de la construction et du requêtage.
 * Les programmes ne sont pas interactifs : une fois lancés avec leurs arguments, ils s’exécutent et se terminent automatiquement.
 * La version avancée exploite la factorisation de l’information de couleur au niveau des unitigs afin de réduire la taille de l’index.
+* création d'un nouveau fichier `Bench.sh` pour la génération des graphiques !
 
 ---
 
@@ -158,5 +159,6 @@ python -m advanced.dbg_indexer query -q First_set/query.fa -i index_advanced.bin
 
 * **Ishaac Chninak**
 * **Axel Wiederkher**
+
 
 
