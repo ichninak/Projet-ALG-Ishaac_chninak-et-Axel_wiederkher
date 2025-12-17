@@ -1,0 +1,6 @@
+fragments_from_all_five_coli	0.1947	0.0000	0.0000	0.1975	0.1798
+head_B253 cont3.1, whole genome shotgun sequence.	0.8740	0.0000	0.0000	0.0000	0.0000
+head_ECOR37 ECOR37_contig_1000_consensus, whole genome shotgun sequence.	0.0000	1.0000	0.0000	0.0000	0.0000
+head_H299 cont1.1, whole genome shotgun sequence.	0.0000	0.0000	1.0000	0.0000	0.0000
+head_IAI39 chromosome, complete genome.	0.0000	0.0000	0.0000	1.0000	0.0000
+head_O157:H7 strain Sakai chromosome.	0.0000	0.0000	0.0000	0.1720	0.7120
