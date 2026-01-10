@@ -2,6 +2,7 @@
 import time
 import pickle
 
+# complexité O(n*m)
 
 def read_fasta_queries(path):
     """
