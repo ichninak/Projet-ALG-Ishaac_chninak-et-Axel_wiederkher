@@ -12,7 +12,7 @@ def read_fasta(path):
     with open(path, "r") as f:
         for line in f:
             if not line.startswith(">"):
-                seq_parts.append(line.strip().upper())
+                seq_parts.append(line.strip().upper()) 
     return "".join(seq_parts)
 
 
@@ -23,7 +23,7 @@ def get_kmers(sequence, k):
     """
     n = len(sequence)
     for i in range(n - k + 1):
-        yield sequence[i:i+k]
+        yield sequence[i:i+k] # création de générateur
 
 
 def build_index(list_file_path, k, output_file):
@@ -42,13 +42,13 @@ def build_index(list_file_path, k, output_file):
     """
     # Lecture de la liste des fichiers génomes
     with open(list_file_path, "r") as fh:
-        genome_paths = [ln.strip() for ln in fh if ln.strip()]
+        genome_paths = [ln.strip() for ln in fh if ln.strip()] # lire les chemins des génomes
 
     graph = {}  # dictionnaire : k-mer -> ensemble des couleurs (genome IDs)
 
     # Construction du graphe
     t_build_start = time.time()
-    for color_id, path in enumerate(genome_paths):
+    for color_id, path in enumerate(genome_paths): # on va créer le dict donc chercher le kmer si présent dans le graph on ajoute il viens de quel génome sion on ajoute tout
         seq = read_fasta(path)
         for kmer in get_kmers(seq, k):
             if kmer in graph:
@@ -62,7 +62,7 @@ def build_index(list_file_path, k, output_file):
     # Sérialisation du graphe
     t_ser_start = time.time()
     with open(output_file, "wb") as out:
-        pickle.dump(graph, out, protocol=pickle.HIGHEST_PROTOCOL)
+        pickle.dump(graph, out, protocol=pickle.HIGHEST_PROTOCOL) # ecriture sur le fichier bin
     t_ser_end = time.time()
 
     print(f"OUT TIME_SERIALISATION: {t_ser_end - t_ser_start}")
